@@ -1,0 +1,525 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <title>USG Request - Tablet</title>
+    <style>
+        @font-face { font-family: 'Sarabun'; src: url('Sarabun-Regular.ttf') format('truetype'); font-weight: 400; }
+        @font-face { font-family: 'Sarabun'; src: url('Sarabun-Bold.ttf') format('truetype'); font-weight: 700; }
+
+        :root {
+            --primary: #5C6BC0;
+            --primary-light: #E8EAF6;
+            --accent: #FF8A65;
+            --green: #81C784;
+            --red: #E57373;
+            --bg: #FAFAFA;
+            --card: #FFFFFF;
+            --text: #37474F;
+            --text-secondary: #78909C;
+            --divider: #ECEFF1;
+            --touch-min: 48px;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        
+        html, body {
+            height: 100%;
+            min-height: 100vh;
+            min-height: -webkit-fill-available;
+        }
+
+        body { 
+            font-family: 'Sarabun', -apple-system, sans-serif; 
+            background: var(--bg);
+            color: var(--text);
+            font-size: 18px;
+            line-height: 1.5;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        /* Header */
+        .header {
+            background: var(--card);
+            color: var(--text);
+            padding: 16px 20px;
+            text-align: center;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            border-bottom: 1px solid var(--divider);
+        }
+        .header h1 { font-size: 20px; font-weight: 700; }
+        .header p { font-size: 12px; color: var(--text-secondary); }
+
+        .container { padding: 16px; max-width: 600px; margin: 0 auto; }
+
+        /* Section */
+        .section {
+            background: var(--card);
+            border-radius: 8px;
+            margin-bottom: 12px;
+            border: 1px solid var(--divider);
+        }
+
+        .section-header {
+            padding: 12px 16px;
+            font-size: 13px;
+            font-weight: 700;
+            color: var(--primary);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            border-bottom: 1px solid var(--divider);
+        }
+
+        .section-body { padding: 16px; }
+
+        /* Form Group */
+        .form-group { margin-bottom: 14px; }
+        .form-group:last-child { margin-bottom: 0; }
+
+        .form-group label {
+            display: block;
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--text-secondary);
+            margin-bottom: 6px;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            min-height: var(--touch-min);
+            padding: 12px 14px;
+            border: 1px solid var(--divider);
+            border-radius: 6px;
+            font-family: 'Sarabun', sans-serif;
+            font-size: 16px;
+            color: var(--text);
+            background: white;
+            -webkit-appearance: none;
+            appearance: none;
+            transition: border-color 0.2s;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+
+        .form-group input[readonly] {
+            background: #F5F5F5;
+            color: var(--text-secondary);
+        }
+
+        .form-group select {
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24'%3E%3Cpath fill='%2378909C' d='M7 10l5 5 5-5z'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 10px center;
+            padding-right: 40px;
+        }
+
+        .row-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+
+        /* Priority Toggle */
+        .priority-group { display: flex; gap: 10px; }
+
+        .priority-btn {
+            flex: 1;
+            min-height: 48px;
+            border: 1px solid var(--divider);
+            border-radius: 6px;
+            background: white;
+            font-family: 'Sarabun', sans-serif;
+            font-size: 15px;
+            font-weight: 600;
+            color: var(--text-secondary);
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .priority-btn.active {
+            border-color: var(--green);
+            background: #E8F5E9;
+            color: #388E3C;
+        }
+
+        .priority-btn.urgent.active {
+            border-color: var(--red);
+            background: #FFEBEE;
+            color: #D32F2F;
+        }
+
+        /* Organ Grid */
+        .organ-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+
+        .organ-card {
+            min-height: 56px;
+            border: 1px solid var(--divider);
+            border-radius: 6px;
+            background: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 10px;
+            cursor: pointer;
+            transition: all 0.2s;
+            user-select: none;
+            -webkit-user-select: none;
+            position: relative;
+        }
+
+        .organ-card:active { transform: scale(0.98); }
+
+        .organ-card.selected {
+            border-color: var(--primary);
+            background: var(--primary-light);
+        }
+
+        .organ-card .name {
+            font-size: 14px;
+            font-weight: 500;
+            text-align: center;
+            color: var(--text);
+        }
+
+        .organ-card .check {
+            display: none;
+            position: absolute;
+            top: 4px;
+            right: 4px;
+            width: 18px;
+            height: 18px;
+            background: var(--primary);
+            border-radius: 50%;
+            color: white;
+            font-size: 11px;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .organ-card.selected .check { display: flex; }
+
+        /* Quick Actions */
+        .quick-actions {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 16px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid var(--divider);
+        }
+
+        .quick-btn {
+            flex: 1;
+            min-height: 36px;
+            border: none;
+            border-radius: 4px;
+            background: var(--primary-light);
+            font-family: 'Sarabun', sans-serif;
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--primary);
+            cursor: pointer;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+        }
+
+        .quick-btn:active { opacity: 0.7; }
+
+        /* Toggle Row */
+        .toggle-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px 0;
+            border-top: 1px solid var(--divider);
+            margin-top: 12px;
+        }
+
+        .toggle-label {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text);
+        }
+
+        .toggle-switch {
+            width: 50px;
+            height: 28px;
+            background: #CFD8DC;
+            border-radius: 14px;
+            position: relative;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .toggle-switch.active { background: var(--accent); }
+
+        .toggle-switch::after {
+            content: '';
+            position: absolute;
+            width: 24px;
+            height: 24px;
+            background: white;
+            border-radius: 50%;
+            top: 2px;
+            left: 2px;
+            transition: transform 0.2s;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+        }
+
+        .toggle-switch.active::after { transform: translateX(22px); }
+
+        /* Action Bar - Static at bottom */
+        .action-bar {
+            background: var(--card);
+            padding: 16px;
+            margin-top: 16px;
+            border-radius: 8px;
+            border: 1px solid var(--divider);
+            display: flex;
+            gap: 10px;
+        }
+
+        .btn {
+            flex: 1;
+            min-height: 48px;
+            border: none;
+            border-radius: 6px;
+            font-family: 'Sarabun', sans-serif;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn:active { transform: scale(0.98); }
+        .btn-primary { background: var(--primary); color: white; }
+        .btn-outline { background: white; border: 1px solid var(--divider); color: var(--text-secondary); }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>Ultrasound Request Form</h1>
+        <p>Tablet Version</p>
+    </div>
+
+    <div class="container">
+        <!-- Patient Info -->
+        <div class="section">
+            <div class="section-header">Patient Information</div>
+            <div class="section-body">
+                <div class="form-group">
+                    <label>HN</label>
+                    <input type="text" id="hn" placeholder="Hospital Number" inputmode="numeric">
+                </div>
+                <div class="form-group">
+                    <label>Accession No.</label>
+                    <input type="text" id="acc" readonly>
+                </div>
+                <div class="row-2">
+                    <div class="form-group">
+                        <label>Pet Name</label>
+                        <input type="text" id="pet_name">
+                    </div>
+                    <div class="form-group">
+                        <label>Owner</label>
+                        <input type="text" id="owner_name">
+                    </div>
+                </div>
+                <div class="row-2">
+                    <div class="form-group">
+                        <label>Species</label>
+                        <select id="species">
+                            <option value="Dog">Dog</option>
+                            <option value="Cat">Cat</option>
+                            <option value="Other">Other</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Breed</label>
+                        <input type="text" id="breed">
+                    </div>
+                </div>
+                <div class="row-2">
+                    <div class="form-group">
+                        <label>Sex</label>
+                        <select id="sex">
+                            <option value="N/A">N/A</option>
+                            <option value="M">Male (M)</option>
+                            <option value="MN">Neutered (MN)</option>
+                            <option value="F">Female (F)</option>
+                            <option value="FS">Spayed (FS)</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Age</label>
+                        <input type="text" id="age" placeholder="Yr/Mo">
+                    </div>
+                </div>
+                <div class="row-2">
+                    <div class="form-group">
+                        <label>Weight (kg)</label>
+                        <input type="number" id="weight" step="0.1" inputmode="decimal">
+                    </div>
+                    <div class="form-group">
+                        <label>Status</label>
+                        <select id="status">
+                            <option value="Stable">Stable</option>
+                            <option value="Critical">Critical</option>
+                            <option value="Aggressive">Aggressive</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Requesting Veterinarian</label>
+                    <select id="req_doc">
+                        <option value="DVM. A (ID: 010)">DVM. A (ID: 010)</option>
+                        <option value="DVM. B (ID: 011)">DVM. B (ID: 011)</option>
+                        <option value="DVM. C (ID: 012)">DVM. C (ID: 012)</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Priority</label>
+                    <div class="priority-group">
+                        <button type="button" class="priority-btn active" data-value="Routine" onclick="setPriority(this)">Routine</button>
+                        <button type="button" class="priority-btn urgent" data-value="Urgent" onclick="setPriority(this)">Urgent</button>
+                    </div>
+                    <input type="hidden" id="priority" value="Routine">
+                </div>
+            </div>
+        </div>
+
+        <!-- Clinical Data -->
+        <div class="section">
+            <div class="section-header">Clinical Data</div>
+            <div class="section-body">
+                <div class="form-group">
+                    <label>Indication / Chief Complaint</label>
+                    <input type="text" id="indication">
+                </div>
+                <div class="form-group">
+                    <label>History / Physical Exam</label>
+                    <textarea id="history" rows="3"></textarea>
+                </div>
+                <div class="toggle-row">
+                    <span class="toggle-label">Follow-up Case</span>
+                    <div class="toggle-switch" id="followup-toggle" onclick="toggleFollowup()"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Organ Selection -->
+        <div class="section">
+            <div class="section-header">Study Requested</div>
+            <div class="section-body">
+                <div class="quick-actions">
+                    <button type="button" class="quick-btn" onclick="selectAllOrgans()">Select All</button>
+                    <button type="button" class="quick-btn" onclick="clearOrgans()">Clear All</button>
+                </div>
+                <div class="organ-grid" id="organ-grid"></div>
+            </div>
+        </div>
+
+        <!-- Action Bar inside container -->
+        <div class="action-bar">
+            <button type="button" class="btn btn-outline" onclick="location.reload()">Reset</button>
+            <button type="button" class="btn btn-primary" onclick="sendToReport()">Send to Report</button>
+        </div>
+    </div>
+
+    <script>
+        const organs = [
+            { id: 'Liver', name: 'Liver' },
+            { id: 'Spleen', name: 'Spleen' },
+            { id: 'Gall Bladder', name: 'Gall Bladder' },
+            { id: 'Pancreas', name: 'Pancreas' },
+            { id: 'Kidneys', name: 'Kidneys' },
+            { id: 'Urinary Bladder', name: 'Urinary Bladder' },
+            { id: 'Adrenal Glands', name: 'Adrenal Glands' },
+            { id: 'Lymph Nodes', name: 'Lymph Nodes' },
+            { id: 'Peritoneum/AFAST', name: 'Peritoneum/AFAST' },
+            { id: 'Stomach', name: 'Stomach' },
+            { id: 'Small Intestine', name: 'Small Intestine' },
+            { id: 'Colon', name: 'Colon' },
+            { id: 'Uterus & Ovaries', name: 'Uterus & Ovaries' },
+            { id: 'Prostate Gland', name: 'Prostate' },
+            { id: 'Testis', name: 'Testis' },
+            { id: 'Other', name: 'Other/Mass' }
+        ];
+
+        window.onload = function() {
+            const grid = document.getElementById('organ-grid');
+            organs.forEach(org => {
+                grid.innerHTML += `
+                    <div class="organ-card" data-organ="${org.id}" onclick="toggleOrgan(this)">
+                        <span class="check">✓</span>
+                        <span class="name">${org.name}</span>
+                    </div>
+                `;
+            });
+
+            const now = new Date();
+            const ts = now.getFullYear().toString().substr(-2) + 
+                       String(now.getMonth() + 1).padStart(2, '0') + 
+                       String(now.getDate()).padStart(2, '0') + "-" +
+                       String(now.getHours()).padStart(2, '0') + 
+                       String(now.getMinutes()).padStart(2, '0');
+            document.getElementById('acc').value = "REQ-" + ts;
+        };
+
+        function toggleOrgan(el) { el.classList.toggle('selected'); }
+        function selectAllOrgans() { document.querySelectorAll('.organ-card').forEach(c => c.classList.add('selected')); }
+        function clearOrgans() { document.querySelectorAll('.organ-card').forEach(c => c.classList.remove('selected')); }
+
+        function setPriority(btn) {
+            document.querySelectorAll('.priority-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            document.getElementById('priority').value = btn.dataset.value;
+        }
+
+        function toggleFollowup() {
+            document.getElementById('followup-toggle').classList.toggle('active');
+        }
+
+        function sendToReport() {
+            const hn = document.getElementById('hn').value;
+            if (!hn) { alert('Please enter HN'); return; }
+
+            const params = new URLSearchParams();
+            const add = (key, id) => { const el = document.getElementById(id); if(el) params.append(key, el.value); };
+
+            add('acc', 'acc'); add('hn', 'hn'); add('pet', 'pet_name'); add('owner', 'owner_name');
+            add('species', 'species'); add('breed', 'breed'); add('sex', 'sex'); add('age', 'age');
+            add('weight', 'weight'); add('status', 'status'); add('req_doc', 'req_doc');
+            add('indication', 'indication'); add('history', 'history');
+            params.append('priority', document.getElementById('priority').value);
+
+            if (document.getElementById('followup-toggle').classList.contains('active')) {
+                params.append('followup', 'true');
+            }
+
+            const selectedOrgans = [];
+            document.querySelectorAll('.organ-card.selected').forEach(c => selectedOrgans.push(c.dataset.organ));
+            params.append('organs', selectedOrgans.join(','));
+            params.append('order_date', new Date().toISOString());
+
+            window.location.href = `report_tablet.html?${params.toString()}`;
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,648 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <title>USG Report - Tablet</title>
+    <style>
+        @font-face { font-family: 'Sarabun'; src: url('Sarabun-Regular.ttf') format('truetype'); font-weight: 400; }
+        @font-face { font-family: 'Sarabun'; src: url('Sarabun-Bold.ttf') format('truetype'); font-weight: 700; }
+
+        :root {
+            --primary: #5C6BC0;
+            --primary-light: #E8EAF6;
+            --accent: #FF8A65;
+            --green: #81C784;
+            --red: #E57373;
+            --bg: #FAFAFA;
+            --card: #FFFFFF;
+            --text: #37474F;
+            --text-secondary: #78909C;
+            --divider: #ECEFF1;
+            --touch-min: 48px;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        
+        html, body {
+            height: 100%;
+            min-height: 100vh;
+            min-height: -webkit-fill-available;
+        }
+
+        body { 
+            font-family: 'Sarabun', -apple-system, sans-serif; 
+            background: var(--bg);
+            color: var(--text);
+            font-size: 16px;
+            line-height: 1.5;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        /* Header */
+        .header {
+            background: var(--card);
+            color: var(--text);
+            padding: 16px 20px;
+            text-align: center;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            border-bottom: 1px solid var(--divider);
+        }
+        .header h1 { font-size: 20px; font-weight: 700; }
+        .header p { font-size: 12px; color: var(--text-secondary); }
+
+        .container { padding: 16px; max-width: 600px; margin: 0 auto; }
+
+        /* Section Card */
+        .section {
+            background: var(--card);
+            border-radius: 8px;
+            margin-bottom: 12px;
+            border: 1px solid var(--divider);
+        }
+
+        .section-header {
+            padding: 12px 16px;
+            font-size: 13px;
+            font-weight: 700;
+            color: var(--primary);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            border-bottom: 1px solid var(--divider);
+        }
+
+        .section-header.green { color: #388E3C; }
+
+        .section-body { padding: 16px; }
+
+        /* Form Elements */
+        .form-group { margin-bottom: 14px; }
+        .form-group:last-child { margin-bottom: 0; }
+
+        .form-group label {
+            display: block;
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--text-secondary);
+            margin-bottom: 6px;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            min-height: var(--touch-min);
+            padding: 12px 14px;
+            border: 1px solid var(--divider);
+            border-radius: 6px;
+            font-family: 'Sarabun', sans-serif;
+            font-size: 16px;
+            color: var(--text);
+            background: white;
+            -webkit-appearance: none;
+            appearance: none;
+            transition: border-color 0.2s;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+
+        .form-group select {
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24'%3E%3Cpath fill='%2378909C' d='M7 10l5 5 5-5z'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 10px center;
+            padding-right: 40px;
+        }
+
+        .row-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+
+        /* Organ Section - Collapsible */
+        .organ-section {
+            background: var(--card);
+            border-radius: 8px;
+            margin-bottom: 8px;
+            border: 1px solid var(--divider);
+            overflow: hidden;
+        }
+
+        .organ-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 14px 16px;
+            cursor: pointer;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+
+        .organ-header:active { background: #F5F5F5; }
+
+        .organ-title {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .organ-title .name { font-size: 15px; font-weight: 600; }
+
+        .badge {
+            padding: 3px 8px;
+            border-radius: 10px;
+            font-size: 11px;
+            font-weight: 600;
+        }
+
+        .badge-ordered { background: var(--primary-light); color: var(--primary); }
+        .badge-remarkable { background: #FFEBEE; color: #D32F2F; display: none; }
+        .badge-remarkable.active { display: inline-block; }
+
+        .toggle-btn {
+            min-height: 40px;
+            padding: 8px 14px;
+            border: 1px solid var(--divider);
+            border-radius: 6px;
+            background: white;
+            font-family: 'Sarabun', sans-serif;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .toggle-btn.active {
+            border-color: var(--primary);
+            background: var(--primary-light);
+            color: var(--primary);
+        }
+
+        .toggle-btn.remarkable.active {
+            border-color: var(--red);
+            background: #FFEBEE;
+            color: #D32F2F;
+        }
+
+        .organ-body {
+            padding: 0 16px 16px;
+            display: none;
+            border-top: 1px solid var(--divider);
+        }
+
+        .organ-section.expanded .organ-body { display: block; padding-top: 12px; }
+
+        .organ-section.examined { border-left: 3px solid var(--primary); }
+        .organ-section.remarkable { border-left: 3px solid var(--red); }
+
+        .expand-icon {
+            font-size: 14px;
+            color: var(--text-secondary);
+            transition: transform 0.2s;
+        }
+
+        .organ-section.expanded .expand-icon { transform: rotate(180deg); }
+
+        /* Measurement Row */
+        .measure-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 10px;
+            padding: 10px;
+            background: #F5F5F5;
+            border-radius: 6px;
+        }
+
+        .measure-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .measure-item label {
+            font-size: 12px;
+            font-weight: 600;
+            white-space: nowrap;
+            color: var(--text-secondary);
+        }
+
+        .measure-item input {
+            width: 60px;
+            min-height: 36px;
+            padding: 6px;
+            border: 1px solid var(--divider);
+            border-radius: 4px;
+            font-size: 14px;
+            text-align: center;
+        }
+
+        .measure-item .unit {
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+
+        /* Finding Textarea */
+        .finding-text {
+            width: 100%;
+            min-height: 80px;
+            padding: 10px;
+            border: 1px solid var(--divider);
+            border-radius: 6px;
+            font-family: 'Sarabun', sans-serif;
+            font-size: 14px;
+            line-height: 1.5;
+            resize: vertical;
+        }
+
+        .finding-text:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+
+        /* Footer Section */
+        .footer-section {
+            background: var(--card);
+            border-radius: 8px;
+            margin-bottom: 12px;
+            padding: 16px;
+            border: 1px solid var(--divider);
+        }
+
+        .footer-label {
+            font-size: 13px;
+            font-weight: 700;
+            color: var(--primary);
+            margin-bottom: 10px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        /* Follow-up Tag */
+        .followup-tag {
+            display: none;
+            background: var(--accent);
+            color: white;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: 600;
+            margin-left: 8px;
+        }
+
+        .followup-tag.active { display: inline-block; }
+
+        /* Action Bar - Static at bottom */
+        .action-bar {
+            background: var(--card);
+            padding: 16px;
+            margin-top: 16px;
+            border-radius: 8px;
+            border: 1px solid var(--divider);
+            display: flex;
+            gap: 10px;
+        }
+
+        .btn {
+            flex: 1;
+            min-height: 48px;
+            border: none;
+            border-radius: 6px;
+            font-family: 'Sarabun', sans-serif;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn:active { transform: scale(0.98); }
+        .btn-primary { background: var(--primary); color: white; }
+        .btn-green { background: var(--green); color: white; }
+        .btn-outline { background: white; border: 1px solid var(--divider); color: var(--text-secondary); }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>Ultrasonographic Report</h1>
+        <p>Tablet Version</p>
+    </div>
+
+    <div class="container">
+        <!-- Patient Info -->
+        <div class="section">
+            <div class="section-header">Patient Information</div>
+            <div class="section-body">
+                <div class="row-2">
+                    <div class="form-group">
+                        <label>HN</label>
+                        <input type="text" id="hn-input">
+                    </div>
+                    <div class="form-group">
+                        <label>Accession</label>
+                        <input type="text" id="accession-input">
+                    </div>
+                </div>
+                <div class="row-2">
+                    <div class="form-group">
+                        <label>Pet Name</label>
+                        <input type="text" id="pet-name-input">
+                    </div>
+                    <div class="form-group">
+                        <label>Owner</label>
+                        <input type="text" id="owner-input">
+                    </div>
+                </div>
+                <div class="row-2">
+                    <div class="form-group">
+                        <label>Species</label>
+                        <select id="species-input">
+                            <option value="Dog">Dog</option>
+                            <option value="Cat">Cat</option>
+                            <option value="Other">Other</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Breed</label>
+                        <input type="text" id="breed-input">
+                    </div>
+                </div>
+                <div class="row-2">
+                    <div class="form-group">
+                        <label>Sex</label>
+                        <select id="sex-select">
+                            <option value="N/A">N/A</option>
+                            <option value="M">M</option>
+                            <option value="MN">MN</option>
+                            <option value="F">F</option>
+                            <option value="FS">FS</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Age</label>
+                        <input type="text" id="age-input">
+                    </div>
+                </div>
+                <div class="row-2">
+                    <div class="form-group">
+                        <label>Weight (kg)</label>
+                        <input type="number" id="weight-input" step="0.1">
+                    </div>
+                    <div class="form-group">
+                        <label>Report By</label>
+                        <select id="rep-doc-select">
+                            <option value="Sonologist A">Sonologist A</option>
+                            <option value="Sonologist B">Sonologist B</option>
+                            <option value="Sonologist C">Sonologist C</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Clinical Data -->
+        <div class="section">
+            <div class="section-header">Clinical Data <span class="followup-tag" id="followup-tag">FOLLOW UP</span></div>
+            <div class="section-body">
+                <div class="form-group">
+                    <label>Indication</label>
+                    <input type="text" id="indication-input">
+                </div>
+                <div class="form-group">
+                    <label>History</label>
+                    <textarea id="history-input" rows="2"></textarea>
+                </div>
+            </div>
+        </div>
+
+        <!-- Findings Title -->
+        <div class="section">
+            <div class="section-header green">Sonographic Findings</div>
+        </div>
+
+        <!-- Organ Sections -->
+        <div id="organs-container"></div>
+
+        <!-- Summary -->
+        <div class="footer-section">
+            <div class="footer-label">Summary / Conclusion</div>
+            <textarea id="summary-text" class="finding-text" rows="3"></textarea>
+        </div>
+
+        <div class="footer-section">
+            <div class="footer-label">Recommendation</div>
+            <textarea id="rec-text" class="finding-text" rows="2"></textarea>
+        </div>
+
+        <!-- Action Bar inside container -->
+        <div class="action-bar">
+            <button class="btn btn-outline" onclick="exportHL7()">HL7</button>
+            <button class="btn btn-outline" onclick="openTextReport()">Text</button>
+            <button class="btn btn-primary" onclick="openPrintPreview()">Print</button>
+        </div>
+    </div>
+
+    <script>
+        const organData = [
+            { id: 'Liver', name: 'Liver', text: 'The liver is normal in size with sharp margins. The parenchyma is homogenous and isoechoic to the right renal cortex. The hepatic vasculature is clearly visualized with normal tapering. No focal or diffuse lesions are observed.' },
+            { id: 'Spleen', name: 'Spleen', text: 'The spleen demonstrates a fine, homogenous echotexture. It is hyperechoic relative to the liver and renal cortex. The splenic capsule is smooth and regular. No masses or nodules are identified.' },
+            { id: 'Gall Bladder', name: 'Gall Bladder', text: 'The gallbladder is clearly visualized and moderately distended. The wall is thin, smooth, and uniform. The bile is anechoic. No sludge, stones, or mineralized densities are observed.' },
+            { id: 'Pancreas', name: 'Pancreas', text: 'The right and left lobes of the pancreas are visualized. The parenchyma is isoechoic to the surrounding mesenteric fat. No pancreatic enlargement or mass effect are observed.' },
+            { id: 'Kidneys', name: 'Kidneys', text: 'Both kidneys are normal in size and shape with smooth capsular margins. The corticomedullary distinction is distinct. No renal calculi or cysts are identified.', measures: [{l:'L Kidney', u:'cm'}, {l:'R Kidney', u:'cm'}, {l:'Aorta', u:'cm'}] },
+            { id: 'Urinary Bladder', name: 'Urinary Bladder', text: 'The urinary bladder is moderately distended. The wall is thin, smooth, and uniform. The lumen is anechoic. No intraluminal masses or calculi are seen.', measures: [{l:'Wall', u:'cm'}] },
+            { id: 'Adrenal Glands', name: 'Adrenal Glands', text: 'Both adrenal glands are visualized cranial to the kidneys. They maintain a normal shape. No enlargement or masses observed.', measures: [{l:'L Cr', u:'cm'}, {l:'L Cd', u:'cm'}, {l:'R Cr', u:'cm'}, {l:'R Cd', u:'cm'}] },
+            { id: 'Peritoneum/AFAST', name: 'Peritoneum / AFAST', text: 'The peritoneal cavity contains no evidence of free fluid or free gas. The mesentery is normal in echogenicity.', hasAfast: true },
+            { id: 'Lymph Nodes', name: 'Lymph Nodes', text: 'The abdominal lymph nodes are not enlarged and appear normal. No lymphadenopathy is observed.' },
+            { id: 'Stomach', name: 'Stomach', text: 'The stomach is visualized. The gastric wall layering is normal. No wall thickening, masses, or foreign bodies are identified.', measures: [{l:'Wall', u:'cm'}] },
+            { id: 'Small Intestine', name: 'Small Intestine', text: 'The small intestine loops are traced. The wall layering is preserved. Normal peristalsis is present throughout.', measures: [{l:'Duod.', u:'cm'}, {l:'Other', u:'cm'}] },
+            { id: 'Colon', name: 'Colon', text: 'The colon is visualized with a thin wall. It contains gas and echogenic feces. No colonic masses seen.', measures: [{l:'Wall', u:'cm'}] },
+            { id: 'Prostate Gland', name: 'Prostate', text: 'The prostate gland is symmetric and bilobed with a smooth capsule. The parenchyma is homogenous. No cysts or mineralization are identified.', measures: [{l:'L', u:'cm'}, {l:'W', u:'cm'}, {l:'H', u:'cm'}] },
+            { id: 'Testis', name: 'Testis', text: 'Both testes are scrotal in position and symmetric in size. The testicular parenchyma is homogenous. No focal lesions seen.' },
+            { id: 'Uterus & Ovaries', name: 'Uterus & Ovaries', text: 'The uterus and ovaries are not clearly visualized. No mass effects or fluid-filled tubular structures are identified.' },
+            { id: 'Other', name: 'Other/Mass', text: 'No other significant abnormalities or abdominal masses are identified.' }
+        ];
+
+        let orderedOrgans = [];
+
+        window.onload = function() {
+            loadFromURL();
+            renderOrgans();
+        };
+
+        function loadFromURL() {
+            const params = new URLSearchParams(window.location.search);
+            const map = (p, id) => { if(params.has(p)) document.getElementById(id).value = params.get(p); };
+            
+            map('hn', 'hn-input'); map('acc', 'accession-input'); map('pet', 'pet-name-input');
+            map('owner', 'owner-input'); map('species', 'species-input'); map('breed', 'breed-input');
+            map('sex', 'sex-select'); map('age', 'age-input'); map('weight', 'weight-input');
+            map('indication', 'indication-input'); map('history', 'history-input');
+
+            if (params.has('followup') && params.get('followup') === 'true') {
+                document.getElementById('followup-tag').classList.add('active');
+            }
+
+            if (params.has('organs')) {
+                orderedOrgans = params.get('organs').split(',');
+            }
+        }
+
+        function renderOrgans() {
+            const container = document.getElementById('organs-container');
+            
+            organData.forEach(org => {
+                const isOrdered = orderedOrgans.includes(org.id);
+                const isExamined = isOrdered;
+
+                let measuresHTML = '';
+                if (org.measures) {
+                    measuresHTML = '<div class="measure-row">';
+                    org.measures.forEach(m => {
+                        measuresHTML += `<div class="measure-item"><label>${m.l}:</label><input type="number" step="0.01" class="m-val" data-label="${m.l}"><span class="unit">${m.u}</span></div>`;
+                    });
+                    measuresHTML += '</div>';
+                }
+
+                let afastHTML = '';
+                if (org.hasAfast) {
+                    afastHTML = `<div class="form-group"><label>AFAST Score</label><select id="afast-select" style="min-height:40px;font-size:14px;"><option value="Negative (0/4)">Negative (0/4)</option><option value="Positive (1/4)">Positive (1/4)</option><option value="Positive (2/4)">Positive (2/4)</option><option value="Positive (3/4)">Positive (3/4)</option><option value="Positive (4/4)">Positive (4/4)</option></select></div>`;
+                }
+
+                container.innerHTML += `
+                    <div class="organ-section ${isExamined ? 'examined expanded' : ''}" data-organ="${org.id}">
+                        <div class="organ-header" onclick="toggleSection(this.parentElement)">
+                            <div class="organ-title">
+                                <span class="name">${org.name}</span>
+                                ${isOrdered ? '<span class="badge badge-ordered">Ordered</span>' : ''}
+                                <span class="badge badge-remarkable">Remarkable</span>
+                            </div>
+                            <span class="expand-icon">▼</span>
+                        </div>
+                        <div class="organ-body">
+                            <div style="display:flex;gap:8px;margin-bottom:10px;">
+                                <button type="button" class="toggle-btn ${isExamined ? 'active' : ''}" onclick="toggleExamined(this)">Examined</button>
+                                <button type="button" class="toggle-btn remarkable" onclick="toggleRemarkable(this)">Remarkable</button>
+                            </div>
+                            ${measuresHTML}
+                            ${afastHTML}
+                            <textarea class="finding-text" rows="3">${org.text}</textarea>
+                        </div>
+                    </div>
+                `;
+            });
+        }
+
+        function toggleSection(el) { el.classList.toggle('expanded'); }
+
+        function toggleExamined(btn) {
+            btn.classList.toggle('active');
+            btn.closest('.organ-section').classList.toggle('examined', btn.classList.contains('active'));
+        }
+
+        function toggleRemarkable(btn) {
+            btn.classList.toggle('active');
+            const sec = btn.closest('.organ-section');
+            sec.classList.toggle('remarkable', btn.classList.contains('active'));
+            sec.querySelector('.badge-remarkable').classList.toggle('active', btn.classList.contains('active'));
+        }
+
+        function formatDisplayDate(d) {
+            const pad = n => String(n).padStart(2, '0');
+            return `${pad(d.getDate())}/${pad(d.getMonth()+1)}/${d.getFullYear()} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
+        }
+
+        function collectData() {
+            const now = new Date();
+            const data = {
+                hn: document.getElementById('hn-input').value,
+                acc: document.getElementById('accession-input').value,
+                petName: document.getElementById('pet-name-input').value,
+                ownerName: document.getElementById('owner-input').value,
+                species: document.getElementById('species-input').value,
+                breed: document.getElementById('breed-input').value,
+                sex: document.getElementById('sex-select').value,
+                age: document.getElementById('age-input').value,
+                weight: document.getElementById('weight-input').value,
+                repBy: document.getElementById('rep-doc-select').value,
+                repDate: formatDisplayDate(now),
+                indication: document.getElementById('indication-input').value,
+                history: document.getElementById('history-input').value,
+                isFollowUp: document.getElementById('followup-tag').classList.contains('active'),
+                summary: document.getElementById('summary-text').value,
+                rec: document.getElementById('rec-text').value,
+                organs: []
+            };
+
+            document.querySelectorAll('.organ-section').forEach(sec => {
+                const examBtn = sec.querySelector('.toggle-btn.active');
+                if (!examBtn || !examBtn.textContent.includes('Examined')) return;
+
+                const organInfo = {
+                    name: sec.dataset.organ,
+                    isRemarkable: sec.classList.contains('remarkable'),
+                    text: sec.querySelector('.finding-text').value,
+                    measurements: [],
+                    afast: null
+                };
+
+                sec.querySelectorAll('.m-val').forEach(inp => {
+                    if (inp.value.trim()) organInfo.measurements.push(`${inp.dataset.label}: ${inp.value} cm`);
+                });
+
+                const afastEl = sec.querySelector('#afast-select');
+                if (afastEl) organInfo.afast = afastEl.value;
+
+                data.organs.push(organInfo);
+            });
+
+            return data;
+        }
+
+        function openTextReport() {
+            const data = collectData();
+            let txt = "========================================\n         ULTRASONOGRAPHIC REPORT\n========================================\n\n";
+            txt += `HN: ${data.hn}  Pet: ${data.petName}\nSpecies: ${data.species} - ${data.breed}\nDate: ${data.repDate}\n\n`;
+            txt += "FINDINGS\n------------------------\n";
+            data.organs.forEach(o => {
+                txt += `${o.name.toUpperCase()}${o.isRemarkable ? ' [REMARKABLE]' : ''}\n`;
+                if (o.measurements.length) txt += `Meas: ${o.measurements.join(' | ')}\n`;
+                txt += `${o.text}\n\n`;
+            });
+            txt += `SUMMARY:\n${data.summary}\n\nRECOMMENDATION:\n${data.rec}\n`;
+            const win = window.open("", "TextReport", "width=600,height=700");
+            win.document.write(`<pre style="font-family:monospace;font-size:14px;padding:20px;">${txt}</pre>`);
+        }
+
+        function exportHL7() {
+            const data = collectData();
+            const nowStr = new Date().toISOString().replace(/[-:T.]/g, '').slice(0,14);
+            let hl7 = `MSH|^~\\&|SONO_SYS|KVIRC|HIS|HOSP|${nowStr}||ORU^R01|${nowStr}|P|2.3\r`;
+            hl7 += `PID|1||${data.hn}||${data.petName}|||${data.sex}||${data.species}\r`;
+            let c = 1;
+            data.organs.forEach(o => { hl7 += `OBX|${c++}|TX|FINDING^${o.name}||${o.text.replace(/\n/g,' ')}||||||F\r`; });
+            const blob = new Blob([hl7], {type: 'text/plain'});
+            const a = document.createElement('a');
+            a.href = URL.createObjectURL(blob);
+            a.download = `${data.acc || 'report'}_${nowStr}.hl7`;
+            a.click();
+        }
+
+        function openPrintPreview() {
+            const data = collectData();
+            const jsonStr = JSON.stringify(data);
+            const base64Data = btoa(unescape(encodeURIComponent(jsonStr)));
+            localStorage.setItem('printData', jsonStr);
+            window.open(`print_view.html?d=${base64Data}`, '_blank');
+        }
+    </script>
+</body>
+</html>
