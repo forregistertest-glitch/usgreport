@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>USG Request Form</title>
+    <style>
+        /* OFFLINE FONT SETUP */
+        @font-face {
+            font-family: 'Sarabun';
+            src: url('Sarabun-Regular.ttf') format('truetype');
+            font-weight: 400; font-style: normal;
+        }
+        @font-face {
+            font-family: 'Sarabun';
+            src: url('Sarabun-Bold.ttf') format('truetype');
+            font-weight: 700; font-style: normal;
+        }
+
+        :root {
+            --primary-color: #006b54; 
+            --accent-color: #004d3d;
+            --success-color: #2e7d32;
+            --bg-color: #f1f8f6;
+            --card-bg: #ffffff;
+            --border-color: #c8e6c9;
+        }
+
+        body { font-family: 'Sarabun', sans-serif; background-color: var(--bg-color); margin: 0; padding: 20px; display: flex; justify-content: center; min-height: 100vh; }
+        .container { width: 100%; max-width: 850px; background-color: var(--card-bg); border-radius: 8px; box-shadow: 0 5px 20px rgba(0,0,0,0.08); overflow: hidden; display: flex; flex-direction: column; border-top: 5px solid var(--primary-color); }
+
+        .header { padding: 20px 25px; text-align: center; border-bottom: 2px solid var(--border-color); background-color: #fff; }
+        .header h1 { margin: 0; font-size: 24px; color: var(--primary-color); text-transform: uppercase; letter-spacing: 1px; font-weight: 700; }
+        .header p { margin: 5px 0 0; font-size: 14px; color: #555; font-weight: 600; }
+
+        .form-body { padding: 30px; }
+        .section-header { background-color: #e8f5e9; color: var(--primary-color); padding: 8px 15px; margin: 20px 0 15px 0; border-left: 5px solid var(--primary-color); font-weight: 700; font-size: 15px; text-transform: uppercase; border-radius: 0 4px 4px 0; }
+        
+        .grid-compact { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px 15px; }
+        .span-2 { grid-column: span 2; }
+        
+        .form-group { margin-bottom: 5px; }
+        .form-group label { display: block; font-size: 12px; font-weight: 700; margin-bottom: 4px; color: #444; text-transform: uppercase; }
+        .form-group input, .form-group select, .form-group textarea { width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px; font-family: 'Sarabun', sans-serif; font-size: 13px; box-sizing: border-box; background-color: #fff; }
+        .form-group input:focus { border-color: var(--primary-color); outline: none; }
+        .form-group input[readonly] { background-color: #f9f9f9; color: #666; }
+
+        .organ-container { background-color: #fcfcfc; border: 1px solid #e0e0e0; border-radius: 6px; padding: 15px; }
+        .organ-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; align-items: center; }
+        .checkbox-item { display: flex; align-items: center; background: white; padding: 6px 10px; border: 1px solid #eee; border-radius: 4px; cursor: pointer; transition: 0.1s; }
+        .checkbox-item:hover { border-color: var(--primary-color); background: #e8f5e9; }
+        .checkbox-item input { margin-right: 8px; transform: scale(1.1); cursor: pointer; }
+        .checkbox-item label { margin: 0; cursor: pointer; font-size: 13px; color: #333; font-weight: 500; }
+
+        .action-bar { margin-top: 30px; padding-top: 20px; border-top: 1px solid #eee; display: flex; justify-content: center; gap: 15px; }
+        .btn { padding: 10px 25px; border: none; border-radius: 4px; font-size: 14px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 8px; text-transform: uppercase; letter-spacing: 0.5px; }
+        .btn:hover { transform: translateY(-1px); opacity: 0.9; }
+        .btn-hl7 { background-color: var(--success-color); color: white; }
+        .btn-send { background-color: var(--primary-color); color: white; }
+        .btn-clear { background-color: #7f8c8d; color: white; }
+
+        .priority-wrap { display: flex; gap: 5px; height: 36px; align-items: center;}
+        .priority-radio { display: none; }
+        .priority-label { padding: 6px 12px; border: 1px solid #ccc; border-radius: 4px; font-size: 12px; cursor: pointer; color: #666; font-weight: bold; background: #fff; transition: 0.2s;}
+        .priority-radio:checked + .priority-label[for="p-urgent"] { background-color: #c0392b; color: white; border-color: #c0392b; }
+        .priority-radio:checked + .priority-label[for="p-routine"] { background-color: var(--success-color); color: white; border-color: var(--success-color); }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>USG Request</h1>
+            <p>Department of Diagnostic Imaging (KVIRC)</p>
+        </div>
+
+        <div class="form-body">
+            <div class="section-header">Patient Information</div>
+            <div class="grid-compact">
+                <div class="form-group"><label>HN</label><input type="text" id="hn" placeholder="Hospital No."></div>
+                <div class="form-group"><label>Accession No. (Auto)</label><input type="text" id="acc" readonly></div>
+                <div class="form-group"><label>Order Date/Time</label><input type="datetime-local" id="req_date"></div>
+                <div class="form-group"><label>Priority</label>
+                    <div class="priority-wrap">
+                        <input type="radio" name="prio" id="p-routine" class="priority-radio" value="Routine" checked>
+                        <label for="p-routine" class="priority-label">Routine</label>
+                        <input type="radio" name="prio" id="p-urgent" class="priority-radio" value="Urgent">
+                        <label for="p-urgent" class="priority-label">Urgent</label>
+                    </div>
+                </div>
+
+                <div class="form-group span-2"><label>Pet Name</label><input type="text" id="pet_name"></div>
+                <div class="form-group span-2"><label>Owner Name</label><input type="text" id="owner_name"></div>
+
+                <div class="form-group"><label>Species</label><select id="species"><option value="Dog">Dog</option><option value="Cat">Cat</option><option value="Other">Other</option></select></div>
+                
+                <div class="form-group"><label>Breed / Other Species</label><input type="text" id="breed"></div>
+                
+                <div class="form-group"><label>Sex</label>
+                    <select id="sex">
+                        <option value="N/A">N/A</option>
+                        <option value="M">M (Male)</option>
+                        <option value="MN">MN (Male Neutered)</option>
+                        <option value="F">F (Female)</option>
+                        <option value="FS">FS (Female Spayed)</option>
+                    </select>
+                </div>
+                <div class="form-group"><label>Age</label><input type="text" id="age" placeholder="Yr/Mo"></div>
+
+                <div class="form-group"><label>Weight (kg)</label><input type="number" id="weight" step="0.1"></div>
+                <div class="form-group"><label>Status</label><select id="status"><option value="Stable">Stable</option><option value="Critical">Critical</option><option value="Aggressive">Aggressive</option><option value="Sedated">Sedated</option></select></div>
+                
+                <div class="form-group span-2"><label>Request By (Vet)</label>
+                    <select id="req_doc">
+                        <option value="DVM. A (ID: 010)">DVM. A (ID: 010)</option>
+                        <option value="DVM. B (ID: 011)">DVM. B (ID: 011)</option>
+                        <option value="DVM. C (ID: 012)">DVM. C (ID: 012)</option>
+                        <option value="DVM. D (ID: 013)">DVM. D (ID: 013)</option>
+                        <option value="DVM. E (ID: 015)">DVM. E (ID: 015)</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="section-header">Clinical Data</div>
+            <div class="form-group"><label>Indication / Chief Complaint / Problem List</label><input type="text" id="indication"></div>
+            <div class="form-group">
+                <div style="display:flex; justify-content:space-between;">
+                    <label>History / Physical Exam Findings</label>
+                    <label style="font-size:12px; color:#d35400; cursor:pointer;"><input type="checkbox" id="followup"> <b>Follow-up Case</b></label>
+                </div>
+                <textarea id="history" rows="3"></textarea>
+            </div>
+
+            <div class="section-header">Study Requested</div>
+            <div class="organ-container">
+                <div style="margin-bottom:10px; text-align:right;">
+                    <button type="button" onclick="selectAllOrgans()" style="font-size:11px; padding:3px 8px; cursor:pointer; border:1px solid #ccc; background:#fff;">Select All (Whole Abdomen)</button>
+                    <button type="button" onclick="clearOrgans()" style="font-size:11px; padding:3px 8px; cursor:pointer; border:1px solid #ccc; background:#fff;">Clear</button>
+                </div>
+                <div class="organ-grid">
+                    <div class="checkbox-item"><label><input type="checkbox" name="organ" value="Liver"> Liver</label></div>
+                    <div class="checkbox-item"><label><input type="checkbox" name="organ" value="Spleen"> Spleen</label></div>
+                    <div class="checkbox-item"><label><input type="checkbox" name="organ" value="Gall Bladder"> Gall Bladder</label></div>
+                    <div class="checkbox-item"><label><input type="checkbox" name="organ" value="Pancreas"> Pancreas</label></div>
+                    <div class="checkbox-item"><label><input type="checkbox" name="organ" value="Kidneys"> Kidneys</label></div>
+                    <div class="checkbox-item"><label><input type="checkbox" name="organ" value="Urinary Bladder"> Urinary Bladder</label></div>
+                    <div class="checkbox-item"><label><input type="checkbox" name="organ" value="Adrenal Glands"> Adrenal Glands</label></div>
+                    <div class="checkbox-item"><label><input type="checkbox" name="organ" value="Lymph Nodes"> Lymph Nodes</label></div>
+                    <div class="checkbox-item"><label><input type="checkbox" name="organ" value="Peritoneum/AFAST"> Peritoneum/AFAST</label></div>
+                    <div class="checkbox-item"><label><input type="checkbox" name="organ" value="Stomach"> Stomach</label></div>
+                    <div class="checkbox-item"><label><input type="checkbox" name="organ" value="Small Intestine"> Small Intestine</label></div>
+                    <div class="checkbox-item"><label><input type="checkbox" name="organ" value="Colon"> Colon</label></div>
+                    <div class="checkbox-item"><label><input type="checkbox" name="organ" value="Uterus & Ovaries"> Uterus & Ovaries</label></div>
+                    <div class="checkbox-item"><label><input type="checkbox" name="organ" value="Prostate Gland"> Prostate Gland</label></div>
+                    <div class="checkbox-item"><label><input type="checkbox" name="organ" value="Testis"> Testis</label></div>
+                    <div class="checkbox-item"><label><input type="checkbox" name="organ" value="Other"> Others / Mass</label></div>
+                    <div></div><div></div>
+                </div>
+            </div>
+
+            <div class="action-bar">
+                <button type="button" class="btn btn-clear" onclick="window.location.reload()">Reset</button>
+                <button type="button" class="btn btn-hl7" onclick="generateHL7Order()"><span>⬇</span> Export HL7</button>
+                <button type="button" class="btn btn-send" onclick="sendToExamRoom()">Send to Exam Room <span>&rarr;</span></button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        window.onload = function() {
+            const now = new Date();
+            const ts = now.getFullYear().toString().substr(-2) + 
+                       String(now.getMonth() + 1).padStart(2, '0') + 
+                       String(now.getDate()).padStart(2, '0') + "-" +
+                       String(now.getHours()).padStart(2, '0') + 
+                       String(now.getMinutes()).padStart(2, '0');
+            document.getElementById('acc').value = "REQ-" + ts;
+            const offset = now.getTimezoneOffset() * 60000;
+            document.getElementById('req_date').value = (new Date(now - offset)).toISOString().slice(0, 16);
+        };
+
+        function selectAllOrgans() { document.querySelectorAll('input[name="organ"]').forEach(cb => cb.checked = true); }
+        function clearOrgans() { document.querySelectorAll('input[name="organ"]').forEach(cb => cb.checked = false); }
+
+        function generateHL7Order() {
+            const val = (id) => document.getElementById(id).value || "";
+            const clean = (str) => str.replace(/(\r\n|\n|\r)/gm, " ").trim();
+            
+            const hn = val('hn') || "UNKNOWN";
+            const acc = val('acc');
+            const reqDoc = val('req_doc'); 
+            const nowStr = new Date().toISOString().replace(/[-:T.]/g, '').slice(0,14);
+            const priority = document.querySelector('input[name="prio"]:checked').value;
+            const indication = clean(val('indication'));
+            
+            // Build History Text (Combined with Follow up)
+            let historyText = clean(val('history'));
+            if(document.getElementById('followup').checked) {
+                historyText = "[Follow-up Case] " + historyText;
+            }
+
+            const checkboxes = document.querySelectorAll('input[name="organ"]:checked');
+            let orderText = "";
+            checkboxes.forEach(cb => orderText += cb.value + ", ");
+            if(orderText === "") orderText = "Ultrasound Abdomen";
+            else orderText = "US Abd: " + orderText.slice(0, -2);
+
+            // UPDATED MSH & Logic for OBR-13/OBR-31
+            let hl7 = `MSH|^~\\&|KAHIS|CLINIC|MODALITY|RADIO|${nowStr}||ORM^O01|${nowStr}|P|2.3\r`;
+            hl7 += `PID|1||${hn}||${val('pet_name')}^${val('owner_name')}|||${val('sex')}||${val('species')} - ${val('breed')}||||||||||||||||||||\r`;
+            
+            // ORC: Removed indication from the end
+            hl7 += `ORC|NW|${acc}|||||1^${priority}||${nowStr}|||${reqDoc}\r`;
+            
+            // OBR: Added Clinical Info (Field 13) and Reason (Field 31)
+            // Note: Empty fields are left as ||
+            // Field 13 is between 12th and 14th pipe
+            // Field 31 is later
+            hl7 += `OBR|1|${acc}||US_ABD^${orderText}|||${nowStr}||||||${historyText}|||${reqDoc}|||||||||||||||${indication}\r`;
+            
+            // DG1: Working Diagnosis
+            hl7 += `DG1|1||${indication}|||W\r`;
+
+            const blob = new Blob([hl7], { type: 'text/plain;charset=utf-8' });
+            const a = document.createElement('a');
+            a.href = window.URL.createObjectURL(blob);
+            // UPDATED File Naming
+            a.download = `${acc}_request_${nowStr}.hl7`;
+            document.body.appendChild(a); a.click(); document.body.removeChild(a);
+        }
+
+        function sendToExamRoom() {
+            const hn = document.getElementById('hn').value;
+            if(!hn) { alert("Please enter HN."); return; }
+
+            const params = new URLSearchParams();
+            const add = (key, id) => { const el = document.getElementById(id); if(el) params.append(key, el.value); };
+
+            add('acc', 'acc');
+            add('order_date', 'req_date');
+            add('hn', 'hn');
+            add('pet', 'pet_name');
+            add('owner', 'owner_name');
+            add('species', 'species');
+            add('breed', 'breed');
+            add('sex', 'sex');
+            add('age', 'age');
+            add('weight', 'weight');
+            add('status', 'status');
+            add('req_doc', 'req_doc');
+            add('indication', 'indication');
+            add('history', 'history');
+            
+            params.append('priority', document.querySelector('input[name="prio"]:checked').value);
+            if(document.getElementById('followup').checked) params.append('followup', 'true');
+
+            const checkboxes = document.querySelectorAll('input[name="organ"]:checked');
+            let selectedOrgans = [];
+            checkboxes.forEach(cb => selectedOrgans.push(cb.value));
+            params.append('organs', selectedOrgans.join(','));
+
+            window.open(`report.html?${params.toString()}`, '_blank');
+        }
+    </script>
+</body>
+</html>

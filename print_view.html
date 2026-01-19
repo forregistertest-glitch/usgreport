@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <title>Print Preview</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;600;700&display=swap');
+        
+        body { 
+            font-family: 'Sarabun', sans-serif; 
+            margin: 0; 
+            padding: 0; 
+            font-size: 14px; 
+            color: #000; 
+            background: #fff;
+        }
+
+        /* --- 1. The Table Structure for Space Reservation --- */
+        /* ตารางหลักครอบทุกอย่าง */
+        .report-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        /* กล่องเปล่าๆ ที่ทำหน้าที่ "กันที่" ให้ Header/Footer (ห้ามมีเนื้อหา) */
+        .page-header-space {
+            height: 25px; /* ความสูงพื้นที่กันไว้ด้านบน (ลดลงตามสเปก) */
+        }
+        
+        .page-footer-space {
+            height: 35px; /* ความสูงพื้นที่กันไว้ด้านล่าง (ลดลงตามสเปก) */
+        }
+
+        /* --- 2. The Fixed Elements (Laying on top of the spaces) --- */
+        /* Header ลอยตัวจริง (วันที่) */
+        .page-header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 25px;
+            background: white;
+            z-index: 1000;
+            padding: 5mm 15mm 0 15mm; /* จัดระยะให้ตรง margin */
+            box-sizing: border-box;
+            text-align: right;
+            font-size: 10px;
+            color: #555;
+        }
+
+        /* Footer ลอยตัวจริง (HN / Date / Page) */
+        .page-footer {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 35px;
+            background: white;
+            z-index: 1000;
+            padding: 0 15mm 5mm 15mm; /* จัดระยะให้ตรง margin */
+            box-sizing: border-box;
+            border-top: 1px solid #000;
+        }
+        
+        .footer-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 11px;
+            font-weight: bold;
+            color: #000;
+            padding-top: 5px;
+        }
+
+        /* --- 3. Content Styling --- */
+        .container-content {
+            padding: 0 15mm; /* Margin ซ้ายขวาของเนื้อหา */
+        }
+
+        h1 { text-align: center; margin: 0 0 5px 0; font-size: 22px; font-weight: 800; text-transform: uppercase; }
+        .subtitle { text-align: center; margin: 0 0 20px 0; font-size: 14px; font-weight: 600; color: #444; }
+        
+        .header-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px 15px; border-bottom: 2px solid #000; padding-bottom: 10px; margin-bottom: 15px; }
+        .info-item { margin-bottom: 4px; }
+        .label { font-size: 10px; font-weight: 700; color: #555; display: block; text-transform: uppercase; }
+        .value { font-size: 13px; font-weight: 600; }
+
+        .general-header { font-size: 14px; font-weight: bold; margin-bottom: 2px; text-transform: uppercase; }
+        .clinical-section { margin-bottom: 20px; padding-bottom: 10px; border-bottom: 1px solid #ddd; }
+        
+        .finding-block { 
+            margin-bottom: 12px; 
+            page-break-inside: avoid; 
+        }
+        
+        .finding-text { 
+            text-align: justify; 
+            line-height: 1.4; 
+            white-space: pre-wrap;
+        }
+        
+        .organ-header-line { font-weight: bold; font-size: 14px; text-transform: uppercase; }
+        .remark-tag { margin-left: 15px; font-size: 12px; color: #000; }
+        .meas-text { font-style: italic; font-size: 12px; font-weight: 600; color: #444; margin-bottom: 2px; }
+
+        .signature-box { 
+            margin-top: 40px; 
+            float: right; 
+            text-align: center; 
+            width: 240px; 
+            page-break-inside: avoid; 
+        }
+
+        /* --- 4. Print Settings --- */
+        @media print {
+            @page {
+                size: A4 portrait;
+                margin: 10mm 0mm 10mm 0mm; /* Margin ของ Browser น้อยๆ เพราะเราจัดการเองในตาราง */
+            }
+            
+            /* บังคับให้หัว/ท้ายตารางทำงานทุกหน้า */
+            thead { display: table-header-group; } 
+            tfoot { display: table-footer-group; }
+            
+            body { margin: 0; }
+            .screen-only { display: none; }
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="page-header">
+        <div id="ph-date"></div>
+    </div>
+
+    <div class="page-footer">
+        <div class="footer-content">
+            <div id="pf-hn"></div>
+            <div id="pf-pet"></div>
+            <div id="pf-date"></div>
+        </div>
+    </div>
+
+    <table class="report-table">
+        
+        <thead>
+            <tr>
+                <td>
+                    <div class="page-header-space"></div>
+                </td>
+            </tr>
+        </thead>
+
+        <tbody>
+            <tr>
+                <td>
+                    <div class="container-content">
+                        <h1 id="title">Ultrasonographic Report</h1>
+                        <p class="subtitle">Department of Diagnostic Imaging (KVIRC)</p>
+                        
+                        <div class="header-grid" id="header-info"></div>
+                        
+                        <div class="clinical-section">
+                            <div class="info-item">
+                                <div class="general-header">INDICATION / CHIEF COMPLAINT:</div>
+                                <div class="value finding-text" id="indication"></div>
+                            </div>
+                            <div class="info-item" style="margin-top: 10px;">
+                                <div class="general-header">HISTORY / CLINICAL NOTE:</div>
+                                <div class="value finding-text" id="history"></div>
+                            </div>
+                        </div>
+                        
+                        <div style="text-align:center; margin:20px 0;">
+                            <span class="general-header" style="font-size:16px; border-bottom: 2px solid #000;">SONOGRAPHIC FINDINGS</span>
+                        </div>
+                        
+                        <div id="findings-container"></div>
+                        
+                        <div style="margin-top:20px; border-top:1px solid #ddd; padding-top:10px;">
+                            <div style="margin-bottom:10px;">
+                                <div class="general-header">SUMMARY / CONCLUSION:</div>
+                                <div class="finding-text" id="summary"></div>
+                            </div>
+                            <div>
+                                <div class="general-header">RECOMMENDATION:</div>
+                                <div class="finding-text" id="rec"></div>
+                            </div>
+                        </div>
+                        
+                        <div class="signature-box">
+                            <div style="border-bottom: 1px solid #000; height: 40px; margin-bottom: 5px;"></div> 
+                            <div style="font-weight: bold; font-size:12px; margin-bottom: 5px;">Veterinarian Signature</div>
+                            <div id="sig-name" style="font-size: 13px;"></div> 
+                        </div>
+                        </div>
+                </td>
+            </tr>
+        </tbody>
+
+        <tfoot>
+            <tr>
+                <td>
+                    <div class="page-footer-space"></div>
+                </td>
+            </tr>
+        </tfoot>
+    </table>
+
+    <script>
+        window.onload = function() {
+            let data = null;
+            
+            // 1. ลองอ่านจาก URL Parameter ก่อน (สำหรับการใช้งานข้ามเครื่อง)
+            const params = new URLSearchParams(window.location.search);
+            const base64Data = params.get('d');
+            
+            if (base64Data) {
+                try {
+                    const jsonStr = decodeURIComponent(escape(atob(base64Data)));
+                    data = JSON.parse(jsonStr);
+                } catch (e) {
+                    console.error('Failed to parse URL data:', e);
+                }
+            }
+            
+            // 2. ถ้าไม่มีใน URL ให้ลอง localStorage (Fallback สำหรับเครื่องเดียวกัน)
+            if (!data) {
+                const stored = localStorage.getItem('printData');
+                if (stored) {
+                    try {
+                        data = JSON.parse(stored);
+                    } catch (e) {
+                        console.error('Failed to parse localStorage data:', e);
+                    }
+                }
+            }
+            
+            // 3. ถ้ายังไม่มีข้อมูล ให้หยุด
+            if (!data) {
+                document.body.innerHTML = '<h2 style="text-align:center; margin-top:50px; color:#c0392b;">ไม่พบข้อมูล Report</h2><p style="text-align:center;">กรุณาเปิดจากหน้า Report โดยกดปุ่ม "Print Preview"</p>';
+                return;
+            }
+            
+            const repDateStr = data.repDate; 
+
+            // Header Date
+            document.getElementById('ph-date').innerText = repDateStr;
+
+            // Header Grid
+            const fields = [
+                {l:'HN', v:data.hn}, {l:'Accession No.', v:data.acc},
+                {l:'Order Date', v:data.orderDate}, {l:'Priority', v:data.priority},
+                {l:'Pet Name', v:data.petName}, {l:'Owner Name', v:data.ownerName},
+                {l:'Species', v:data.species}, {l:'Breed', v:data.breed},
+                {l:'Sex', v:data.sex}, {l:'Age', v:data.age},
+                {l:'Weight', v:data.weight}, {l:'Status', v:data.status},
+                {l:'Request By', v:data.reqBy}, {l:'Report Date', v:repDateStr}
+            ];
+            const grid = document.getElementById('header-info');
+            fields.forEach(f => grid.innerHTML += `<div class="info-item"><span class="label">${f.l}</span><span class="value">${f.v || '-'}</span></div>`);
+
+            // Clinical
+            document.getElementById('indication').innerText = data.indication || '-';
+            let hist = data.history || '-';
+            if(data.isFollowUp) hist = "[FOLLOW UP CASE] " + hist;
+            document.getElementById('history').innerText = hist;
+
+            // Findings
+            const container = document.getElementById('findings-container');
+            data.organs.forEach(org => {
+                let remarkHTML = org.isRemarkable ? '<span class="remark-tag">[REMARKABLE]</span>' : '';
+                let measHTML = "";
+                if(org.measurements && org.measurements.length > 0) measHTML = `<div class="meas-text">[Meas] ${org.measurements.join(" | ")}</div>`;
+                if(org.afast) measHTML += `<div class="meas-text">[AFAST: ${org.afast}]</div>`;
+
+                container.innerHTML += `
+                    <div class="finding-block">
+                        <div class="organ-header-line">${org.name.toUpperCase()}${remarkHTML}</div>
+                        ${measHTML}
+                        <div class="finding-text">${org.text || '-'}</div>
+                    </div>
+                `;
+            });
+
+            // Summary/Rec
+            document.getElementById('summary').innerText = data.summary || '-';
+            document.getElementById('rec').innerText = data.rec || '-';
+            
+            // Signature
+            document.getElementById('sig-name').innerText = `(${data.repBy})`;
+
+            // Footer info
+            const fInfo = { h: `HN: ${data.hn}`, p: `Pet: ${data.petName}`, d: `Date: ${repDateStr}` };
+            document.getElementById('pf-hn').innerText = fInfo.h;
+            document.getElementById('pf-pet').innerText = fInfo.p;
+            document.getElementById('pf-date').innerText = fInfo.d;
+
+            setTimeout(() => { window.print(); }, 500);
+        };
+    </script>
+</body>
+</html>

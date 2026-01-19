@@ -1,0 +1,601 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>USG Report</title>
+    <script src="html2pdf.bundle.min.js"></script>
+    
+    <style>
+        /* OFFLINE FONTS */
+        @font-face { font-family: 'Sarabun'; src: url('Sarabun-Regular.ttf') format('truetype'); font-weight: 400; }
+        @font-face { font-family: 'Sarabun'; src: url('Sarabun-Bold.ttf') format('truetype'); font-weight: 700; }
+
+        :root { 
+            --primary-color: #006b54; 
+            --accent-color: #004d3d;
+            --success-color: #2e7d32;
+            --bg-color: #f1f8f6;
+            --input-bg: #fff;
+            --input-border: #c8e6c9;
+            --examined-color: #0056b3;
+            --remarkable-color: #c0392b;
+        }
+        
+        body { font-family: 'Sarabun', sans-serif; background-color: var(--bg-color); margin: 0; padding: 20px; color: #333; }
+        
+        .container { max-width: 210mm; margin: 0 auto; background: white; padding: 30px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); min-height: 297mm; position: relative; }
+        
+        .header-top { text-align: center; margin-bottom: 20px; border-bottom: 3px solid var(--primary-color); padding-bottom: 15px; }
+        h1.report-title { margin: 0; font-size: 24px; font-weight: 800; text-transform: uppercase; color: var(--primary-color); letter-spacing: 1.5px; }
+        p.report-subtitle { margin: 5px 0 0; font-size: 14px; font-weight: 600; color: #444; }
+
+        .section-box { margin-bottom: 15px; }
+        .grid-header { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px 12px; }
+        .full-width { grid-column: span 4; }
+        .span-2 { grid-column: span 2; }
+        
+        .form-group { display: flex; flex-direction: column; }
+        .form-group label { font-size: 11px; font-weight: 700; color: #555; margin-bottom: 2px; text-transform: uppercase; }
+        .form-group input, .form-group select, .form-group textarea { padding: 4px 8px; border: 1px solid #ccc; border-radius: 3px; font-family: 'Sarabun'; font-size: 12px; color: #000; background-color: var(--input-bg); width: 100%; box-sizing: border-box; }
+        .form-group input[readonly] { background-color: #f0f0f0; border-color: #ddd; color: #444; }
+
+        .clinical-box { background-color: #f4fbf9; padding: 10px; border-radius: 4px; border: 1px solid #dcdcdc; margin-bottom: 20px; }
+        .followup-tag { display: none; color: #c0392b; font-weight: bold; font-size: 12px; margin-left: 10px;}
+        .followup-tag.active { display: inline; }
+
+        .finding-title-box { text-align: center; font-weight: bold; font-size: 16px; background-color: var(--primary-color); color: #fff; padding: 8px; margin-bottom: 15px; text-transform: uppercase; letter-spacing: 1px; border-radius: 4px; }
+        
+        .organ-section { margin-bottom: 10px; border-bottom: 1px solid #eee; padding-bottom: 10px; }
+        .organ-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px; }
+        .organ-label { font-weight: 700; font-size: 14px; color: #000; }
+        
+        .controls { display: flex; gap: 10px; font-size: 11px; align-items: center; }
+        .controls label { cursor: pointer; display: flex; align-items: center; }
+        .controls input { margin-right: 3px; }
+        .lbl-ordered { color: var(--primary-color); font-weight: 600; }
+        .lbl-exam { color: var(--examined-color); font-weight: 600; }
+        .lbl-remarkable { color: var(--remarkable-color); font-weight: 600; }
+        
+        .afast-select { border: 1px solid #ccc; font-size: 11px; padding: 2px; border-radius: 3px; margin-left: 10px; }
+
+        .measure-row { display: flex; flex-wrap: wrap; gap: 15px; background-color: #eafaf1; padding: 4px 8px; border-radius: 4px; margin-bottom: 6px; border-left: 3px solid var(--success-color); align-items: center; }
+        .measure-item { display: flex; align-items: center; font-size: 11px; }
+        .measure-item label { margin-right: 5px; font-weight: 600; color: #333;}
+        .measure-item input { width: 50px; padding: 1px 4px; border: 1px solid #bbb; border-radius: 2px; text-align: center; font-size: 11px; }
+
+        textarea.finding-text { width: 100%; border: 1px solid #ddd; border-radius: 3px; padding: 6px; font-family: 'Sarabun'; font-size: 13px; line-height: 1.4; min-height: 45px; resize: vertical; color: #333; }
+        
+        .footer-section { margin-top: 15px; border-top: 2px solid #333; padding-top: 10px; }
+        .footer-label { font-weight: 800; font-size: 14px; display: block; margin-bottom: 5px; text-transform: uppercase; }
+
+        .btn-area { text-align: center; margin-top: 30px; margin-bottom: 50px; display: flex; justify-content: center; gap: 15px; }
+        .btn { color: white; padding: 12px 25px; border: none; border-radius: 4px; font-size: 15px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.2); transition: 0.2s; }
+        .btn-pdf { background-color: var(--primary-color); }
+        .btn-hl7 { background-color: var(--success-color); }
+        .btn-text { background-color: #34495e; }
+        .btn-print { background-color: #e67e22; }
+        .btn:hover { opacity: 0.9; transform: translateY(-2px); }
+    </style>
+</head>
+<body>
+    <div class="container" id="report-content">
+        <div class="header-top">
+            <h1 class="report-title">USG Report</h1>
+            <p class="report-subtitle">Department of Diagnostic Imaging (KVIRC)</p>
+        </div>
+
+        <div class="section-box">
+            <div class="grid-header">
+                <div class="form-group"><label>HN</label><input type="text" id="hn-input"></div>
+                <div class="form-group"><label>Accession No.</label><input type="text" id="accession-input"></div>
+                
+                <div class="form-group"><label>Order Date/Time</label><input type="text" id="order-date-input" readonly></div>
+                <div class="form-group"><label>Priority</label><input type="text" id="priority-input" readonly></div>
+
+                <div class="form-group"><label>Pet Name</label><input type="text" id="pet-name-input"></div>
+                <div class="form-group"><label>Owner Name</label><input type="text" id="owner-input"></div>
+                
+                <div class="form-group"><label>Species</label>
+                    <select id="species-input">
+                        <option value="Dog">Dog</option>
+                        <option value="Cat">Cat</option>
+                        <option value="Other">Other</option>
+                    </select>
+                </div>
+                <div class="form-group"><label>Breed / Other Species</label><input type="text" id="breed-input"></div>
+                
+                <div class="form-group"><label>Sex</label>
+                    <select id="sex-select">
+                        <option value="N/A">N/A</option>
+                        <option value="M">M (Male)</option>
+                        <option value="MN">MN (Male Neutered)</option>
+                        <option value="F">F (Female)</option>
+                        <option value="FS">FS (Female Spayed)</option>
+                    </select>
+                </div>
+                <div class="form-group"><label>Age</label><input type="text" id="age-input"></div>
+                <div class="form-group"><label>Weight (kg)</label><input type="number" id="weight-input" step="0.1"></div>
+                
+                <div class="form-group"><label>Status</label>
+                    <select id="status-input">
+                        <option value="Stable">Stable</option>
+                        <option value="Critical">Critical</option>
+                        <option value="Aggressive">Aggressive</option>
+                        <option value="Sedated">Sedated</option>
+                    </select>
+                </div>
+
+                <div class="form-group"><label>Quality of Study</label>
+                    <select id="quality-select">
+                        <option value="Good (Diagnostic)">Good (Diagnostic)</option>
+                        <option value="Limited (Gas)">Limited by Gas</option>
+                        <option value="Limited (Patient Motion)">Limited by Patient Motion</option>
+                        <option value="Limited (Pain/Splinting)">Limited by Pain/Splinting</option>
+                        <option value="Non-diagnostic">Non-diagnostic</option>
+                    </select>
+                </div>
+                <div class="form-group"><label>Sedation</label><select id="sedation-select"><option value="None">None</option><option value="Sedated">Sedated</option><option value="Anesthetized">Anesthetized</option></select></div>
+                <div class="form-group span-2"><label>Request By</label><input type="text" id="req-doc-input"></div>
+
+                <div class="form-group span-2"><label>Report By</label>
+                    <select id="rep-doc-select">
+                        <option value="Sonologist A (ID: 001)">Sonologist A (ID: 001)</option>
+                        <option value="Sonologist B (ID: 002)">Sonologist B (ID: 002)</option>
+                        <option value="Sonologist C (ID: 003)">Sonologist C (ID: 003)</option>
+                        <option value="Sonologist D (ID: 004)">Sonologist D (ID: 004)</option>
+                        <option value="Sonologist E (ID: 005)">Sonologist E (ID: 005)</option>
+                    </select>
+                </div>
+                <div class="form-group span-2" style="display:flex; flex-direction:row; align-items:flex-end; gap:10px;">
+                    <label>Report Date:</label>
+                    <input type="datetime-local" id="report-date-input">
+                </div>
+            </div>
+        </div>
+
+        <div class="clinical-box">
+            <div class="form-group full-width" style="margin-bottom:8px;">
+                <label>Indication / Chief Complaint / Problem List:</label>
+                <textarea id="indication-input" rows="1" style="resize: none; font-weight:bold;"></textarea>
+            </div>
+            <div class="form-group full-width">
+                <div style="display:flex; justify-content:space-between; align-items:center;">
+                    <label>History / Clinical Note: <span class="followup-tag" id="pdf-followup-tag">[FOLLOW UP CASE]</span></label>
+                    <label class="chk-followup-label" style="font-size:11px; color:#c0392b; cursor:pointer;"><input type="checkbox" id="followup-chk"> Follow up Case</label>
+                </div>
+                <textarea id="history-input" rows="2" style="resize: none;"></textarea>
+            </div>
+        </div>
+
+        <div class="finding-title-box">SONOGRAPHIC FINDINGS</div>
+
+        <div class="organ-section" data-organ="Liver">
+            <div class="organ-header">
+                <div><span class="organ-label">Liver:</span></div>
+                <div class="controls"><label class="lbl-ordered"><input type="checkbox" class="chk-ordered" disabled> Ordered</label><label class="lbl-exam"><input type="checkbox" class="chk-exam"> Examined</label><label class="lbl-remarkable"><input type="checkbox" class="chk-rem"> Remarkable</label></div>
+            </div>
+            <textarea class="finding-text">The liver is normal in size with sharp margins. The parenchyma is homogenous and isoechoic to the right renal cortex. The hepatic vasculature (portal and hepatic veins) is clearly visualized with normal tapering. No focal or diffuse lesions are observed.</textarea>
+        </div>
+
+        <div class="organ-section" data-organ="Spleen">
+            <div class="organ-header">
+                <div><span class="organ-label">Spleen:</span></div>
+                <div class="controls"><label class="lbl-ordered"><input type="checkbox" class="chk-ordered" disabled> Ordered</label><label class="lbl-exam"><input type="checkbox" class="chk-exam"> Examined</label><label class="lbl-remarkable"><input type="checkbox" class="chk-rem"> Remarkable</label></div>
+            </div>
+            <textarea class="finding-text">The spleen demonstrates a fine, homogenous echotexture. It is hyperechoic relative to the liver and renal cortex. The splenic capsule is smooth and regular. The splenic veins are normal in size. No masses or nodules are identified.</textarea>
+        </div>
+
+        <div class="organ-section" data-organ="Gall Bladder">
+            <div class="organ-header">
+                <div><span class="organ-label">Gall bladder:</span></div>
+                <div class="controls"><label class="lbl-ordered"><input type="checkbox" class="chk-ordered" disabled> Ordered</label><label class="lbl-exam"><input type="checkbox" class="chk-exam"> Examined</label><label class="lbl-remarkable"><input type="checkbox" class="chk-rem"> Remarkable</label></div>
+            </div>
+            <textarea class="finding-text">The gallbladder is clearly visualized and moderately distended with a normal ovoid shape. The wall is thin (<1 mm), smooth, and uniform. The bile is anechoic. No sludge, stones, or mineralized densities are observed within the lumen.</textarea>
+        </div>
+
+        <div class="organ-section" data-organ="Pancreas">
+            <div class="organ-header">
+                <div><span class="organ-label">Pancreas:</span></div>
+                <div class="controls"><label class="lbl-ordered"><input type="checkbox" class="chk-ordered" disabled> Ordered</label><label class="lbl-exam"><input type="checkbox" class="chk-exam"> Examined</label><label class="lbl-remarkable"><input type="checkbox" class="chk-rem"> Remarkable</label></div>
+            </div>
+            <textarea class="finding-text">The right and left lobes of the pancreas are visualized. The parenchyma is isoechoic to the surrounding mesenteric fat. No pancreatic enlargement, hypoechoic areas, or mass effect are observed. The surrounding mesentery appears normal.</textarea>
+        </div>
+
+        <div class="organ-section" data-organ="Kidneys">
+            <div class="organ-header">
+                <div><span class="organ-label">Kidneys:</span></div>
+                <div class="controls"><label class="lbl-ordered"><input type="checkbox" class="chk-ordered" disabled> Ordered</label><label class="lbl-exam"><input type="checkbox" class="chk-exam"> Examined</label><label class="lbl-remarkable"><input type="checkbox" class="chk-rem"> Remarkable</label></div>
+            </div>
+            <div class="measure-row">
+                <div class="measure-item"><label>L Length:</label><input type="number" step="0.01" class="m-val" data-label="Left Kidney"><span class="unit">cm</span></div>
+                <div class="measure-item"><label>R Length:</label><input type="number" step="0.01" class="m-val" data-label="Right Kidney"><span class="unit">cm</span></div>
+                <div class="measure-item"><label>Aorta diameter:</label><input type="number" step="0.01" class="m-val" data-label="Aorta diameter"><span class="unit">cm</span></div>
+            </div>
+            <textarea class="finding-text">Both kidneys are normal in size and shape with smooth capsular margins. The corticomedullary distinction (CMD) is distinct. The renal pelvis is not dilated (no pyelectasia or hydronephrosis). No renal calculi or cysts are identified.</textarea>
+        </div>
+
+        <div class="organ-section" data-organ="Urinary Bladder">
+            <div class="organ-header">
+                <div><span class="organ-label">Urinary bladder:</span></div>
+                <div class="controls"><label class="lbl-ordered"><input type="checkbox" class="chk-ordered" disabled> Ordered</label><label class="lbl-exam"><input type="checkbox" class="chk-exam"> Examined</label><label class="lbl-remarkable"><input type="checkbox" class="chk-rem"> Remarkable</label></div>
+            </div>
+            <div class="measure-row"><div class="measure-item"><label>Wall thickness:</label><input type="number" step="0.01" class="m-val" data-label="Wall Thickness"><span class="unit">cm</span></div></div>
+            <textarea class="finding-text">The urinary bladder is moderately distended. The wall is thin, smooth, and uniform in thickness. The lumen is anechoic. No intraluminal masses, calculi, or blood clots are seen.</textarea>
+        </div>
+
+        <div class="organ-section" data-organ="Adrenal Glands">
+            <div class="organ-header">
+                <div><span class="organ-label">Adrenal glands:</span></div>
+                <div class="controls"><label class="lbl-ordered"><input type="checkbox" class="chk-ordered" disabled> Ordered</label><label class="lbl-exam"><input type="checkbox" class="chk-exam"> Examined</label><label class="lbl-remarkable"><input type="checkbox" class="chk-rem"> Remarkable</label></div>
+            </div>
+            <div class="measure-row">
+                 <div class="measure-item"><label>L Cr diameter:</label><input type="number" step="0.01" class="m-val" data-label="L Cr diameter"><span class="unit">cm</span></div>
+                 <div class="measure-item"><label>L Cd diameter:</label><input type="number" step="0.01" class="m-val" data-label="L Cd diameter"><span class="unit">cm</span></div>
+                 <div class="measure-item"><label>R Cr diameter:</label><input type="number" step="0.01" class="m-val" data-label="R Cr diameter"><span class="unit">cm</span></div>
+                 <div class="measure-item"><label>R Cd diameter:</label><input type="number" step="0.01" class="m-val" data-label="R Cd diameter"><span class="unit">cm</span></div>
+            </div>
+            <textarea class="finding-text">Both adrenal glands are visualized cranial to the kidneys. They are hypoechoic to the surrounding fat and maintain a normal peanut-shape (cat) or bilobed shape (dog). No enlargement or masses observed.</textarea>
+        </div>
+
+        <div class="organ-section" data-organ="Peritoneum/AFAST">
+            <div class="organ-header">
+                <div style="display:flex; align-items:center;">
+                    <span class="organ-label">Peritoneum / AFAST:</span> 
+                    <select id="afast-select" class="afast-select">
+                        <option value="Negative (0/4)">Negative (0/4)</option>
+                        <option value="Positive (1/4)">Positive (1/4)</option>
+                        <option value="Positive (2/4)">Positive (2/4)</option>
+                        <option value="Positive (3/4)">Positive (3/4)</option>
+                        <option value="Positive (4/4)">Positive (4/4)</option>
+                    </select>
+                </div>
+                <div class="controls"><label class="lbl-ordered"><input type="checkbox" class="chk-ordered" disabled> Ordered</label><label class="lbl-exam"><input type="checkbox" class="chk-exam"> Examined</label><label class="lbl-remarkable"><input type="checkbox" class="chk-rem"> Remarkable</label></div>
+            </div>
+            <textarea class="finding-text">The peritoneal cavity contains no evidence of free fluid (effusion) or free gas. The mesentery is normal in echogenicity.</textarea>
+        </div>
+
+        <div class="organ-section" data-organ="Lymph Nodes">
+            <div class="organ-header">
+                <div><span class="organ-label">Abd. lymph nodes:</span></div>
+                <div class="controls"><label class="lbl-ordered"><input type="checkbox" class="chk-ordered" disabled> Ordered</label><label class="lbl-exam"><input type="checkbox" class="chk-exam"> Examined</label><label class="lbl-remarkable"><input type="checkbox" class="chk-rem"> Remarkable</label></div>
+            </div>
+            <textarea class="finding-text">The abdominal lymph nodes (mesenteric, medial iliac) are not enlarged and appear isoechoic to slightly hypoechoic to the surrounding fat. No lymphadenopathy is observed.</textarea>
+        </div>
+
+        <div class="organ-section" data-organ="Stomach">
+            <div class="organ-header">
+                <div><span class="organ-label">Stomach:</span></div>
+                <div class="controls"><label class="lbl-ordered"><input type="checkbox" class="chk-ordered" disabled> Ordered</label><label class="lbl-exam"><input type="checkbox" class="chk-exam"> Examined</label><label class="lbl-remarkable"><input type="checkbox" class="chk-rem"> Remarkable</label></div>
+            </div>
+            <div class="measure-row"><div class="measure-item"><label>Wall thickness:</label><input type="number" step="0.01" class="m-val" data-label="Gastric Wall Thickness"><span class="unit">cm</span></div></div>
+            <textarea class="finding-text">The stomach is visualized. The gastric wall layering is normal and distinct. The rugal folds are normal. No wall thickening, masses, or foreign bodies are identified. Gastric motility is present.</textarea>
+        </div>
+
+        <div class="organ-section" data-organ="Small Intestine">
+            <div class="organ-header">
+                <div><span class="organ-label">Small Intestine:</span></div>
+                <div class="controls"><label class="lbl-ordered"><input type="checkbox" class="chk-ordered" disabled> Ordered</label><label class="lbl-exam"><input type="checkbox" class="chk-exam"> Examined</label><label class="lbl-remarkable"><input type="checkbox" class="chk-rem"> Remarkable</label></div>
+            </div>
+            <div class="measure-row">
+                <div class="measure-item"><label>Duodenum wall thickness:</label><input type="number" step="0.01" class="m-val" data-label="Duodenum Wall Thickness"><span class="unit">cm</span></div>
+                <div class="measure-item"><label>Other wall thickness:</label><input type="number" step="0.01" class="m-val" data-label="Other SI Wall Thickness"><span class="unit">cm</span></div>
+            </div>
+            <textarea class="finding-text">The small intestine loops are traced. The wall layering is preserved and thickness is within normal limits. Normal peristalsis is present throughout. No evidence of obstruction, plication, or masses.</textarea>
+        </div>
+
+        <div class="organ-section" data-organ="Colon">
+            <div class="organ-header">
+                <div><span class="organ-label">Colon:</span></div>
+                <div class="controls"><label class="lbl-ordered"><input type="checkbox" class="chk-ordered" disabled> Ordered</label><label class="lbl-exam"><input type="checkbox" class="chk-exam"> Examined</label><label class="lbl-remarkable"><input type="checkbox" class="chk-rem"> Remarkable</label></div>
+            </div>
+            <div class="measure-row"><div class="measure-item"><label>Wall thickness:</label><input type="number" step="0.01" class="m-val" data-label="Colon Wall Thickness"><span class="unit">cm</span></div></div>
+            <textarea class="finding-text">The colon is visualized with a thin wall (< 2mm). It contains gas and echogenic feces causing acoustic shadowing. No colonic masses seen.</textarea>
+        </div>
+
+        <div class="organ-section" data-organ="Prostate Gland">
+            <div class="organ-header">
+                <div><span class="organ-label">Prostate gland:</span></div>
+                <div class="controls"><label class="lbl-ordered"><input type="checkbox" class="chk-ordered" disabled> Ordered</label><label class="lbl-exam"><input type="checkbox" class="chk-exam"> Examined</label><label class="lbl-remarkable"><input type="checkbox" class="chk-rem"> Remarkable</label></div>
+            </div>
+            <div class="measure-row">
+                <div class="measure-item"><label>Length:</label><input type="number" step="0.01" class="m-val" data-label="Prostate Length"><span class="unit">cm</span></div>
+                <div class="measure-item"><label>Width:</label><input type="number" step="0.01" class="m-val" data-label="Prostate Width"><span class="unit">cm</span></div>
+                <div class="measure-item"><label>Height:</label><input type="number" step="0.01" class="m-val" data-label="Prostate Height"><span class="unit">cm</span></div>
+            </div>
+            <textarea class="finding-text">The prostate gland is symmetric and bilobed with a smooth capsule. The parenchyma is homogenous and moderately echogenic. No cysts, mineralization, or cavitations are identified.</textarea>
+        </div>
+
+        <div class="organ-section" data-organ="Testis">
+            <div class="organ-header">
+                <div><span class="organ-label">Testis:</span></div>
+                <div class="controls"><label class="lbl-ordered"><input type="checkbox" class="chk-ordered" disabled> Ordered</label><label class="lbl-exam"><input type="checkbox" class="chk-exam"> Examined</label><label class="lbl-remarkable"><input type="checkbox" class="chk-rem"> Remarkable</label></div>
+            </div>
+            <textarea class="finding-text">Both testes are scrotal in position and symmetric in size. The testicular parenchyma is homogenous with a central mediastinum testis visible. No focal lesions or masses seen.</textarea>
+        </div>
+
+        <div class="organ-section" data-organ="Uterus & Ovaries">
+            <div class="organ-header">
+                <div><span class="organ-label">Uterus & Ovaries:</span></div>
+                <div class="controls"><label class="lbl-ordered"><input type="checkbox" class="chk-ordered" disabled> Ordered</label><label class="lbl-exam"><input type="checkbox" class="chk-exam"> Examined</label><label class="lbl-remarkable"><input type="checkbox" class="chk-rem"> Remarkable</label></div>
+            </div>
+            <textarea class="finding-text">The uterus and ovaries are not clearly visualized (likely anestrus or spayed). No mass effects or fluid-filled tubular structures are identified in the caudal abdomen.</textarea>
+        </div>
+        
+        <div class="organ-section" data-organ="Other">
+             <div class="organ-header">
+                <div><span class="organ-label">Other/Mass:</span></div>
+                <div class="controls"><label class="lbl-ordered"><input type="checkbox" class="chk-ordered" disabled> Ordered</label><label class="lbl-exam"><input type="checkbox" class="chk-exam"> Examined</label><label class="lbl-remarkable"><input type="checkbox" class="chk-rem"> Remarkable</label></div>
+            </div>
+            <textarea class="finding-text">No other significant abnormalities or abdominal masses are identified.</textarea>
+        </div>
+
+        <div class="footer-section"><span class="footer-label">SUMMARY / CONCLUSION:</span><textarea id="summary-text" class="finding-text" style="min-height: 80px;"></textarea></div>
+        <div class="footer-section"><span class="footer-label">RECOMMENDATION:</span><textarea id="rec-text" class="finding-text" style="min-height: 60px;"></textarea></div>
+
+        <div style="margin-top: 40px; display:flex; justify-content:space-between; align-items:flex-end;">
+            <div style="font-size: 10px; color: #777;">Generated by SonoReport System v1.0 ISO-Compliant</div>
+            <div style="text-align: center; width: 220px;">
+                <div id="sig-name-render" style="font-weight:bold; display:block; margin-bottom:5px;"></div>
+                <div style="border-bottom: 1px solid #000; height: 30px;"></div>
+                <div style="font-size: 13px; margin-top: 5px; font-weight:600;">Veterinarian Signature</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="btn-area">
+        <button class="btn btn-hl7" onclick="generateHL7Result()"><span>⬇</span> Export HL7 Result</button>
+        <button class="btn btn-text" onclick="generateTextReport()"><span>📄</span> View Text Report</button>
+        <button class="btn btn-print" onclick="openPrintPreview()"><span>🖨️</span> Print Preview (A4)</button>
+    </div>
+
+    <script>
+        window.onload = function() {
+            setReportDate(); 
+            const params = new URLSearchParams(window.location.search);
+            const map = (p, id) => { if(params.has(p)) document.getElementById(id).value = params.get(p); };
+            
+            map('hn', 'hn-input');
+            map('acc', 'accession-input');
+            
+            if(params.has('order_date')) {
+                document.getElementById('order-date-input').value = formatDisplayDate(params.get('order_date'));
+            }
+            
+            map('pet', 'pet-name-input');
+            map('owner', 'owner-input');
+            map('species', 'species-input');
+            map('breed', 'breed-input');
+            map('sex', 'sex-select'); 
+            map('age', 'age-input');
+            map('weight', 'weight-input');
+            map('status', 'status-input');
+            map('req_doc', 'req-doc-input');
+            map('priority', 'priority-input');
+            map('indication', 'indication-input');
+            map('history', 'history-input');
+            
+            // FOLLOW UP LOGIC
+            let isFollowUp = false;
+            if(params.has('followup') && params.get('followup') === 'true') isFollowUp = true;
+            
+            const histVal = (document.getElementById('history-input').value || "").toLowerCase();
+            if(histVal.includes('[follow up') || histVal.includes('follow-up') || histVal.includes('follow up')) isFollowUp = true;
+
+            if(isFollowUp) {
+                document.getElementById('followup-chk').checked = true;
+                document.querySelector('.followup-tag').classList.add('active');
+            }
+
+            if(params.has('hn')) {
+                document.querySelectorAll('input[readonly], #hn-input, #accession-input, #req-doc-input, #pet-name-input, #owner-input').forEach(e => e.readOnly = true);
+            }
+
+            // --- AUTO CHECK LOGIC ---
+            const orderedOrgans = params.get('organs');
+            if (orderedOrgans) {
+                const list = orderedOrgans.split(',');
+                document.querySelectorAll('.organ-section').forEach(sec => {
+                    const organName = sec.getAttribute('data-organ');
+                    let isMatch = list.includes(organName);
+                    // Handle special case naming
+                    if(organName === 'Peritoneum/AFAST' && (list.includes('Peritoneum') || list.includes('Peritoneum/AFAST'))) isMatch = true;
+                    if(organName === 'Prostate Gland' && list.includes('Prostate Gland')) isMatch = true;
+                    
+                    if (isMatch) {
+                        sec.querySelector('.chk-ordered').checked = true;
+                        // เพิ่ม: ติ๊ก Examined ให้ด้วยถ้ามีการ Order
+                        sec.querySelector('.chk-exam').checked = true;
+                    }
+                });
+            }
+        };
+
+        function setReportDate() {
+            const now = new Date();
+            const offset = now.getTimezoneOffset() * 60000;
+            document.getElementById('report-date-input').value = (new Date(now - offset)).toISOString().slice(0, 16);
+        }
+
+        function formatDisplayDate(isoString) {
+            if(!isoString) return "";
+            const d = new Date(isoString);
+            if (isNaN(d.getTime())) return isoString; 
+            const pad = (n) => String(n).padStart(2, '0');
+            return `${pad(d.getDate())}/${pad(d.getMonth() + 1)}/${d.getFullYear()} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
+        }
+
+        function getFindingTextForHL7(sec) {
+            let combinedText = "";
+            const measureInputs = sec.querySelectorAll('.measure-row input');
+            let mText = [];
+            measureInputs.forEach(input => {
+                if(input.value && input.value.trim() !== "") {
+                    const unit = input.nextElementSibling ? input.nextElementSibling.innerText : "";
+                    const label = input.getAttribute('data-label');
+                    mText.push(`${label}: ${input.value} ${unit}`);
+                }
+            });
+            if (mText.length > 0) combinedText += `[Meas] ${mText.join(" | ")} `; 
+            if (sec.getAttribute('data-organ') === 'Peritoneum/AFAST') {
+                combinedText += `[AFAST: ${document.getElementById('afast-select').value}] `;
+            }
+            const rawText = sec.querySelector('textarea.finding-text').value.trim();
+            if (rawText) combinedText += rawText;
+            return combinedText.replace(/(\r\n|\n|\r)/gm, " "); 
+        }
+
+        function generateHL7Result() {
+            const val = (id) => { const el = document.getElementById(id); return el ? (el.value || "") : ""; };
+            const hn = val('hn-input') || "UNKNOWN";
+            const acc = val('accession-input') || "ACC";
+            const nowStr = new Date().toISOString().replace(/[-:T.]/g, '').slice(0,14);
+
+            let hl7 = `MSH|^~\\&|SONO_SYS|KVIRC|HIS|HOSP|${nowStr}||ORU^R01|${nowStr}|P|2.3\r`;
+            hl7 += `PID|1||${hn}||${val('pet-name-input')}^${val('owner-input')}|||${val('sex-select')}||${val('species-input')} - ${val('breed-input')}||||||||||||||||||||\r`;
+            const reporter = val('rep-doc-select');
+            hl7 += `OBR|1|${acc}||US_REPORT|||${nowStr}|||||||||${val('req-doc-input')}|||||||${nowStr}|||${reporter}||||||\r`;
+            
+            let counter = 1;
+            hl7 += `OBX|${counter++}|TX|INDICATION||${val('indication-input')}||||||F\r`;
+            const isFU = document.getElementById('followup-chk').checked ? "[Follow Up] " : "";
+            hl7 += `OBX|${counter++}|TX|HISTORY||${isFU}${val('history-input')}||||||F\r`;
+            
+            document.querySelectorAll('.organ-section').forEach(sec => {
+                if (!sec.querySelector('.chk-exam').checked) return;
+                const organName = sec.getAttribute('data-organ');
+                const abnFlag = sec.querySelector('.chk-rem').checked ? 'A' : '';
+                const text = getFindingTextForHL7(sec); 
+                hl7 += `OBX|${counter++}|TX|FINDING^${organName}||${text}|||${abnFlag}|||F\r`;
+            });
+
+            hl7 += `OBX|${counter++}|TX|SUMMARY||${val('summary-text')}||||||F\r`;
+            hl7 += `OBX|${counter++}|TX|RECOMMENDATION||${val('rec-text')}||||||F\r`;
+
+            const blob = new Blob([hl7], { type: 'text/plain;charset=utf-8' });
+            const a = document.createElement('a');
+            a.href = window.URL.createObjectURL(blob);
+            a.download = `${acc}_report_${nowStr}.hl7`;
+            document.body.appendChild(a); a.click(); document.body.removeChild(a);
+        }
+
+        function generateTextReport() {
+            const val = (id) => { const el = document.getElementById(id); return el ? (el.value || "-") : "-"; };
+            const dateVal = formatDisplayDate(document.getElementById('report-date-input').value);
+
+            let txt = "========================================\n";
+            txt += "         ULTRASONOGRAPHIC REPORT\n";
+            txt += " Department of Diagnostic Imaging (KVIRC)\n";
+            txt += "========================================\n\n";
+            txt += `HN: ${val('hn-input')} \t Accession No.: ${val('accession-input')}\n`;
+            txt += `Pet Name: ${val('pet-name-input')} \t Owner Name: ${val('owner-input')}\n`;
+            txt += `Species: ${val('species-input')} - ${val('breed-input')}\n`;
+            txt += `Sex: ${val('sex-select')} \t Age: ${val('age-input')} \t Weight: ${val('weight-input')} kg\n`;
+            txt += `Date: ${dateVal}\n`;
+            txt += `Report By: ${val('rep-doc-select')}\n\n`;
+            
+            txt += "CLINICAL DATA\n";
+            txt += `Indication: ${val('indication-input')}\n`;
+            if(document.getElementById('followup-chk').checked) txt += "[FOLLOW UP CASE]\n";
+            txt += `History: ${val('history-input')}\n\n`;
+            
+            const titleHeader = "SONOGRAPHIC FINDINGS";
+            // *** ปรับปรุงตามคำขอ: เพิ่มความยาวขีด +6 ***
+            const separator = "-".repeat(titleHeader.length + 6);
+            txt += `${titleHeader}\n${separator}\n\n`;
+            
+            document.querySelectorAll('.organ-section').forEach(sec => {
+                if (sec.querySelector('.chk-exam').checked) {
+                    const organName = sec.getAttribute('data-organ').toUpperCase();
+                    const isRem = sec.querySelector('.chk-rem').checked ? "   [REMARKABLE]" : "";
+                    txt += `${organName}${isRem}\n`; 
+                    
+                    const measureInputs = sec.querySelectorAll('.measure-row input');
+                    if (measureInputs.length > 0) {
+                        let mText = [];
+                        measureInputs.forEach(input => {
+                            if(input.value && input.value.trim() !== "") {
+                                mText.push(`${input.getAttribute('data-label')}: ${input.value} ${input.nextElementSibling.innerText}`);
+                            }
+                        });
+                        if(mText.length > 0) txt += `Meas: ${mText.join(" | ")}\n`;
+                    }
+                    if (sec.getAttribute('data-organ') === 'Peritoneum/AFAST') {
+                        txt += `AFAST: [${document.getElementById('afast-select').value}]\n`;
+                    }
+                    txt += `${sec.querySelector('textarea.finding-text').value}\n\n`;
+                }
+            });
+            
+            txt += `SUMMARY:\n${val('summary-text')}\n\n`;
+            txt += `RECOMMENDATION:\n${val('rec-text')}\n`;
+            txt += "========================================\n";
+            
+            const win = window.open("", "TextReport", "width=800,height=600");
+            win.document.write(`<pre style="font-family: monospace; font-size: 14px; padding: 20px;">${txt}</pre>`);
+            win.document.close();
+        }
+
+        function openPrintPreview() {
+            // ส่งวันที่แบบ Format แล้วไปเลยเพื่อแก้ปัญหา NaN
+            const rawRepDate = document.getElementById('report-date-input').value;
+            const formattedRepDate = formatDisplayDate(rawRepDate);
+
+            const data = {
+                hn: document.getElementById('hn-input').value,
+                acc: document.getElementById('accession-input').value,
+                orderDate: document.getElementById('order-date-input').value, 
+                priority: document.getElementById('priority-input').value,
+                petName: document.getElementById('pet-name-input').value,
+                ownerName: document.getElementById('owner-input').value,
+                species: document.getElementById('species-input').value,
+                breed: document.getElementById('breed-input').value,
+                sex: document.getElementById('sex-select').options[document.getElementById('sex-select').selectedIndex].text,
+                age: document.getElementById('age-input').value,
+                weight: document.getElementById('weight-input').value,
+                status: document.getElementById('status-input').value,
+                quality: document.getElementById('quality-select').value,
+                sedation: document.getElementById('sedation-select').value,
+                reqBy: document.getElementById('req-doc-input').value,
+                repBy: document.getElementById('rep-doc-select').value,
+                
+                repDate: formattedRepDate, // ใช้ค่าที่ format แล้ว
+                
+                indication: document.getElementById('indication-input').value,
+                history: document.getElementById('history-input').value,
+                isFollowUp: document.getElementById('followup-chk').checked,
+                summary: document.getElementById('summary-text').value,
+                rec: document.getElementById('rec-text').value,
+                organs: []
+            };
+
+            document.querySelectorAll('.organ-section').forEach(sec => {
+                if(!sec.querySelector('.chk-exam').checked) return;
+                const organData = {
+                    name: sec.getAttribute('data-organ'),
+                    isRemarkable: sec.querySelector('.chk-rem').checked,
+                    text: sec.querySelector('textarea.finding-text').value,
+                    measurements: [],
+                    afast: null
+                };
+                sec.querySelectorAll('.measure-row input').forEach(input => {
+                    if(input.value.trim()) {
+                        organData.measurements.push(`${input.dataset.label}: ${input.value} ${input.nextElementSibling.innerText}`);
+                    }
+                });
+                if(organData.name === 'Peritoneum/AFAST') organData.afast = document.getElementById('afast-select').value;
+                data.organs.push(organData);
+            });
+
+            // ส่งข้อมูลผ่าน URL Parameter (Base64 encoded) เพื่อให้ใช้งานข้ามเครื่องได้
+            const jsonStr = JSON.stringify(data);
+            const base64Data = btoa(unescape(encodeURIComponent(jsonStr)));
+            
+            // เก็บ localStorage ไว้เป็น fallback (สำหรับกรณี URL ยาวเกินไป)
+            localStorage.setItem('printData', jsonStr);
+            
+            window.open(`print_view.html?d=${base64Data}`, '_blank');
+        }
+    </script>
+</body>
+</html>
